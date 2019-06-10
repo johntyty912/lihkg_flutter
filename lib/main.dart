@@ -120,7 +120,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     itemCount: subCat.thread_list.length,
                     itemBuilder: (context, index) {
                       return ListTile(
-                        title: Text(subCat.thread_list[index].title),
+                        title: Text(subCat.thread_list[index].user_nickname, style: TextStyle(fontSize: 12.0, color: Colors.grey),),
+                        subtitle: Text(subCat.thread_list[index].title, style: TextStyle(fontSize: 16.0, color: Colors.black)),
                       );
                     },
                     separatorBuilder: (context, idx) {
