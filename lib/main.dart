@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'src/property.dart';
+import 'src/thread.dart' as thread;
 
 void main() => runApp(MyApp());
 
@@ -19,9 +20,9 @@ class MyApp extends StatelessWidget {
 
 class DynamicTabContent {
   String sub_cat_name;
-  String sub_cat_url;
+  List<thread.Item> thread_list;
 
-  DynamicTabContent.name(this.sub_cat_name, this.sub_cat_url);
+  DynamicTabContent.name(this.sub_cat_name, this.thread_list);
 }
 
 class MyHomePage extends StatefulWidget {
@@ -52,12 +53,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
 
     for (final sub_cat in _category[_selected_cat_id].sub_category) {
-      String _main_url = sub_cat.url;
-      if (sub_cat.query.length > 0) {
-        _main_url += "?";
-        sub_cat.query.forEach((k, v) => _main_url += "${k}=${v}&");
-      }
-      _tempList.add(new DynamicTabContent.name(sub_cat.name, _main_url));
+      final thread_list = await thread.getThread(sub_cat.url, sub_cat.query);
+      _tempList.add(
+          new DynamicTabContent.name(sub_cat.name, thread_list.response.items));
     }
     setState(() {
       _subCatList = _tempList;
@@ -69,18 +67,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     });
   }
 
-  void _onChangeSelectedCatID() {
+  Future<void> _onChangeSelectedCatID() async {
     setState(() {
       _subCatList.clear();
     });
     for (final sub_cat in _category[_selected_cat_id].sub_category) {
-      String _main_url = sub_cat.url;
-      Map<String, String> query = sub_cat.query;
-      if (sub_cat.query.length > 0) {
-        _main_url += "?";
-        sub_cat.query.forEach((k, v) => _main_url += "${k}=${v}&");
-      }
-      _subCatList.add(new DynamicTabContent.name(sub_cat.name, _main_url));
+      final thread_list = await thread.getThread(sub_cat.url, sub_cat.query);
+      _subCatList.add(
+          new DynamicTabContent.name(sub_cat.name, thread_list.response.items));
     }
     setState(() {
       _tabController =
@@ -121,7 +115,17 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         children: _subCatList.isEmpty
             ? <Widget>[]
             : _subCatList.map((subCat) {
-                return new Text(subCat.sub_cat_url);
+                // return new Text(subCat.thread_list[0].title);
+                return ListView.separated(
+                    itemCount: subCat.thread_list.length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        title: Text(subCat.thread_list[index].title),
+                      );
+                    },
+                    separatorBuilder: (context, idx) {
+                      return Divider();
+                    });
               }).toList(),
         controller: _tabController,
       ),

@@ -50,7 +50,7 @@ class Category {
       _$CategoryFromJson(json);
   Map<String, dynamic> toJson() => _$CategoryToJson(this);
 
-  final String cat_id;
+  final dynamic cat_id;
   final String name;
   final bool postable;
 }
@@ -151,7 +151,7 @@ class User {
   final bool is_following, is_blocked, is_disappear;
 }
 
-Future<Thread> getProperty(String threadURL, Map<String, String> query) async {
+Future<Thread> getThread(String threadURL, Map<String, String> query) async {
   final Uri uri = Uri.parse(threadURL).replace(queryParameters: query);
   final response = await http.get(uri.toString());
   if (response.statusCode == 200) {

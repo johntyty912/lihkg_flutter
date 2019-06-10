@@ -41,7 +41,7 @@ Map<String, dynamic> _$ResponseToJson(Response instance) => <String, dynamic>{
 
 Category _$CategoryFromJson(Map<String, dynamic> json) {
   return Category(
-      cat_id: json['cat_id'] as String,
+      cat_id: json['cat_id'],
       name: json['name'] as String,
       postable: json['postable'] as bool);
 }
