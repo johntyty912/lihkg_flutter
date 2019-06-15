@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'src/property.dart';
 import 'src/thread.dart' as thread;
+import 'pageRoute.dart';
 
 void main() => runApp(MyApp());
 
@@ -122,9 +123,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                       return ListTile(
                         title: Text(subCat.thread_list[index].user_nickname, style: TextStyle(fontSize: 12.0, color: Colors.grey),),
                         subtitle: Text(subCat.thread_list[index].title, style: TextStyle(fontSize: 16.0, color: Colors.black)),
+                        onTap: () {
+                          Navigator.push(
+                            context, 
+                            MaterialPageRoute(builder: (context) => pageRoute(thread:subCat.thread_list[index])),
+                          );
+                        },
                       );
                     },
-                    separatorBuilder: (context, idx) {
+                    separatorBuilder: (context, index) {
                       return Divider();
                     });
               }).toList(),
