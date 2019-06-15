@@ -18,16 +18,32 @@ class pageRouteState extends State<pageRoute> {
   int _page = 1;
   bool orderByHot = false;
   Map<int, Item_data> items = new Map();
+  ScrollController _scrollController;
 
   pageRouteState(this.thread);
 
   @override
   void initState() {
+    _scrollController = ScrollController();
+    _scrollController.addListener(_scrollListener);
     super.initState();
-    _onCreate();
+    _onLoadPage();
   }
 
-  Future<void> _onCreate() async {
+  _scrollListener() {
+     if (_scrollController.offset >= _scrollController.position.maxScrollExtent &&
+        !_scrollController.position.outOfRange) {
+      _page++;
+      _onLoadPage();
+    }
+    if (_scrollController.offset <= _scrollController.position.minScrollExtent &&
+        !_scrollController.position.outOfRange) {
+      _page--;
+      _onLoadPage();
+    }
+  }
+
+  Future<void> _onLoadPage() async {
     Map<int, Item_data> _tempMap = items;
 
     final pageURL = "https://lihkg.com/api_v2/thread/${thread.thread_id}/page/${_page}";
@@ -51,6 +67,7 @@ class pageRouteState extends State<pageRoute> {
         title: Text(thread.title),
       ),
       body: ListView.separated(
+        controller: _scrollController,
         itemCount: items.length,
         itemBuilder: (context, index) {
           return ListTile(
