@@ -16,6 +16,8 @@ class pageRouteState extends State<pageRoute> {
 
   Item thread;
   int _page = 1;
+  int _minPage;
+  int _maxPage;
   bool orderByHot = false;
   Map<int, Item_data> items = new Map();
   ScrollController _scrollController;
@@ -24,6 +26,8 @@ class pageRouteState extends State<pageRoute> {
 
   @override
   void initState() {
+    _minPage = _page;
+    _maxPage = _page;
     _scrollController = ScrollController();
     _scrollController.addListener(_scrollListener);
     super.initState();
@@ -33,12 +37,14 @@ class pageRouteState extends State<pageRoute> {
   _scrollListener() {
      if (_scrollController.offset >= _scrollController.position.maxScrollExtent &&
         !_scrollController.position.outOfRange) {
-      _page++;
+      _maxPage++;
+      _page = _maxPage;
       _onLoadPage();
     }
     if (_scrollController.offset <= _scrollController.position.minScrollExtent &&
         !_scrollController.position.outOfRange) {
-      _page--;
+      _minPage--;
+      _page = _minPage;
       _onLoadPage();
     }
   }
