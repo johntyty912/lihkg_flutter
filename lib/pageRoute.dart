@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
+import 'package:html/dom.dart' as dom;
 import 'src/thread.dart';
 import 'src/page.dart';
+import 'msgCard.dart';
 import 'dart:math';
 
 class pageRoute extends StatefulWidget {
@@ -58,6 +61,7 @@ class pageRouteState extends State<pageRoute> {
     };
 
     final page = await getPage(pageURL, query);
+    if (page.response == null) { return; }
     for (final item in page.response.item_data) {
       _tempMap[int.parse(item.msg_num)] = item;
     }
@@ -72,16 +76,11 @@ class pageRouteState extends State<pageRoute> {
       appBar: AppBar(
         title: Text(thread.title),
       ),
-      body: ListView.separated(
+      body: ListView.builder(
         controller: _scrollController,
         itemCount: items.length,
         itemBuilder: (context, index) {
-          return ListTile(
-            title: Text(items[index+items.keys.reduce(min)].msg),
-          );
-        },
-        separatorBuilder: (context, index) {
-          return Text(items[index+items.keys.reduce(min)].msg_num);
+          return msgCard(msg: items[index+items.keys.reduce(min)]);
         },
       ),
     );

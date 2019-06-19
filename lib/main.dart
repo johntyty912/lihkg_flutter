@@ -115,8 +115,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       _subCats.clear();
     });
     for (final sub_cat in _category[_selected_cat_id].sub_category) {
-      final thread_list = await thread.getThread(sub_cat.url, sub_cat.query);
-      _subCats[sub_cat.name] = new DynamicTabContent.name(sub_cat.name, thread_list.response.items, sub_cat.url, sub_cat.query);
+      final threadList = await thread.getThread(sub_cat.url, sub_cat.query);
+      _subCats[sub_cat.name] = new DynamicTabContent.name(sub_cat.name, threadList.response.items, sub_cat.url, sub_cat.query);
     }
     _selectedSubCat = _subCats.keys.toList()[0];
     setState(() {
