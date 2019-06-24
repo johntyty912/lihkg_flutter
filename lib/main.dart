@@ -2,7 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'src/property.dart';
 import 'src/thread.dart' as thread;
+import 'src/login.dart' as login;
 import 'pageRoute.dart';
+import 'loginRoute.dart';
 
 void main() => runApp(MyApp());
 
@@ -26,7 +28,8 @@ class DynamicTabContent {
   Map<String, String> query;
   int _page = 1;
 
-  DynamicTabContent.name(this.sub_cat_name, this.thread_list, this.sub_cat_url, this.query);
+  DynamicTabContent.name(
+      this.sub_cat_name, this.thread_list, this.sub_cat_url, this.query);
 }
 
 class MyHomePage extends StatefulWidget {
@@ -46,6 +49,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   ScrollController _scrollController;
 
+  login.Login _login;
+
   @override
   void initState() {
     super.initState();
@@ -64,17 +69,17 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
     for (final sub_cat in _category[_selected_cat_id].sub_category) {
       final thread_list = await thread.getThread(sub_cat.url, sub_cat.query);
-    //   _tempList.add(
-    //       new DynamicTabContent.name(sub_cat.name, thread_list.response.items));
-    // }
-    _tempMap[sub_cat.name] = new DynamicTabContent.name(sub_cat.name, thread_list.response.items, sub_cat.url, sub_cat.query);
+      //   _tempList.add(
+      //       new DynamicTabContent.name(sub_cat.name, thread_list.response.items));
+      // }
+      _tempMap[sub_cat.name] = new DynamicTabContent.name(
+          sub_cat.name, thread_list.response.items, sub_cat.url, sub_cat.query);
     }
     setState(() {
       // _subCatList = _tempList;
       _subCats = _tempMap;
       _selectedSubCat = _subCats.keys.toList()[0];
-      _tabController = 
-          new TabController(vsync: this, length: _subCats.length);
+      _tabController = new TabController(vsync: this, length: _subCats.length);
       _tabController.addListener(_tabListener);
       _tabPageSelector = new TabPageSelector(
         controller: _tabController,
@@ -88,11 +93,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       print(_selectedSubCat);
     }
   }
+
   _scrollListener() {
-    if (_scrollController.offset >= _scrollController.position.maxScrollExtent &&
+    if (_scrollController.offset >=
+            _scrollController.position.maxScrollExtent &&
         !_scrollController.position.outOfRange) {
-          print("hi");
-          _onLoadThread();
+      print("hi");
+      _onLoadThread();
     }
   }
 
@@ -101,8 +108,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     Map<String, String> _query = _subCats[_selectedSubCat].query;
     _subCats[_selectedSubCat]._page++;
     _query['page'] = "${_subCats[_selectedSubCat]._page}";
-    final thread_list = await thread.getThread(_subCats[_selectedSubCat].sub_cat_url, _query);
-    for ( final item in thread_list.response.items) {
+    final thread_list =
+        await thread.getThread(_subCats[_selectedSubCat].sub_cat_url, _query);
+    for (final item in thread_list.response.items) {
       _tempList.add(item);
     }
     setState(() {
@@ -116,12 +124,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     });
     for (final sub_cat in _category[_selected_cat_id].sub_category) {
       final threadList = await thread.getThread(sub_cat.url, sub_cat.query);
-      _subCats[sub_cat.name] = new DynamicTabContent.name(sub_cat.name, threadList.response.items, sub_cat.url, sub_cat.query);
+      _subCats[sub_cat.name] = new DynamicTabContent.name(
+          sub_cat.name, threadList.response.items, sub_cat.url, sub_cat.query);
     }
     _selectedSubCat = _subCats.keys.toList()[0];
     setState(() {
-      _tabController =
-          new TabController(vsync: this, length: _subCats.length);
+      _tabController = new TabController(vsync: this, length: _subCats.length);
       _tabController.addListener(_tabListener);
       _tabPageSelector = new TabPageSelector(
         controller: _tabController,
@@ -164,12 +172,19 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     itemCount: subCat.thread_list.length,
                     itemBuilder: (context, index) {
                       return ListTile(
-                        title: Text(subCat.thread_list[index].user_nickname, style: TextStyle(fontSize: 12.0, color: Colors.grey),),
-                        subtitle: Text(subCat.thread_list[index].title, style: TextStyle(fontSize: 16.0, color: Colors.black)),
+                        title: Text(
+                          subCat.thread_list[index].user_nickname,
+                          style: TextStyle(fontSize: 12.0, color: Colors.grey),
+                        ),
+                        subtitle: Text(subCat.thread_list[index].title,
+                            style:
+                                TextStyle(fontSize: 16.0, color: Colors.black)),
                         onTap: () {
                           Navigator.push(
-                            context, 
-                            MaterialPageRoute(builder: (context) => pageRoute(thread:subCat.thread_list[index])),
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => pageRoute(
+                                    thread: subCat.thread_list[index])),
                           );
                         },
                       );
@@ -184,10 +199,43 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         child: ListView(
           children: _category.isEmpty
               ? <Widget>[]
-              : getListTileFromCategory(_category),
+              : <Widget>[
+                  new ListTile(
+                    title: _login==null? Text("登入") : Text(_login.response.me.nickname),
+                    onTap: _login==null? onTapLogin : onTapUserName,
+                    // onTap: () {
+                    //   Navigator.push(
+                    //       context,
+                    //       MaterialPageRoute(
+                    //           builder: (context) => loginRoute())).then((result) {
+                    //             setState(() {
+                    //               _login = result;
+                    //             });
+                    //             print(_login.response.me.nickname);
+                    //           });
+                    // },
+                  ),
+                  ...getListTileFromCategory(_category),
+                ],
         ),
       ),
     );
+  }
+
+  onTapUserName() {
+    print(_login.response.me.nickname);
+  }
+
+  onTapLogin() {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => loginRoute())).then((result) {
+              setState(() {
+                _login = result;
+              });
+              print(_login.response.me.nickname);
+            });
   }
 
   Widget LoadingPage() {
