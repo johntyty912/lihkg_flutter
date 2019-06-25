@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:html/dom.dart' as dom;
+import 'package:dotted_border/dotted_border.dart';
 import 'src/page.dart';
 
 class msgCard extends StatefulWidget {
@@ -67,6 +68,17 @@ class msgCardState extends State<msgCard> {
               }
               return Container();
             },
+          );
+        case "sub":
+          return DottedBorder(
+            gap: 3.0,
+            strokeWidth: 3.0,
+            child: Html(
+              data: node.innerHtml,
+              useRichText: false,
+              onLinkTap: _onLinkTap,
+              customRender: _customRender,
+            ),
           );
       }
     } else if (node is dom.Text) {
