@@ -110,6 +110,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     _query['page'] = "${_subCats[_selectedSubCat]._page}";
     final thread_list =
         await thread.getThread(_subCats[_selectedSubCat].sub_cat_url, _query);
+    if (thread_list.success==0) { return; }
     for (final item in thread_list.response.items) {
       _tempList.add(item);
     }
@@ -184,7 +185,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                             context,
                             MaterialPageRoute(
                                 builder: (context) => pageRoute(
-                                    thread: subCat.thread_list[index])),
+                                    thread: subCat.thread_list[index],
+                                    login: _login,)),
                           );
                         },
                       );
@@ -203,17 +205,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   new ListTile(
                     title: _login==null? Text("登入") : Text(_login.response.me.nickname),
                     onTap: _login==null? onTapLogin : onTapUserName,
-                    // onTap: () {
-                    //   Navigator.push(
-                    //       context,
-                    //       MaterialPageRoute(
-                    //           builder: (context) => loginRoute())).then((result) {
-                    //             setState(() {
-                    //               _login = result;
-                    //             });
-                    //             print(_login.response.me.nickname);
-                    //           });
-                    // },
                   ),
                   ...getListTileFromCategory(_category),
                 ],
@@ -223,7 +214,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   onTapUserName() {
-    print(_login.response.me.nickname);
+    print(_login.response.token); //49b46c864f442695fe1d6827a151f890c2fcb676
   }
 
   onTapLogin() {

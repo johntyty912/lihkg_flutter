@@ -12,13 +12,17 @@ Page _$PageFromJson(Map<String, dynamic> json) {
       server_time: json['server_time'] as int,
       response: json['response'] == null
           ? null
-          : Response.fromJson(json['response'] as Map<String, dynamic>));
+          : Response.fromJson(json['response'] as Map<String, dynamic>),
+      error_code: json['error_code'] as int,
+      error_message: json['error_message'] as String);
 }
 
 Map<String, dynamic> _$PageToJson(Page instance) => <String, dynamic>{
       'success': instance.success,
       'server_time': instance.server_time,
-      'response': instance.response
+      'response': instance.response,
+      'error_code': instance.error_code,
+      'error_message': instance.error_message
     };
 
 Response _$ResponseFromJson(Map<String, dynamic> json) {
@@ -155,7 +159,7 @@ Item_data _$Item_dataFromJson(Map<String, dynamic> json) {
       dislike_count: json['dislike_count'] as String,
       vote_score: json['vote_score'] as String,
       no_of_quote: json['no_of_quote'] as String,
-      status: json['status'] as String,
+      status: json['status'],
       reply_time: json['reply_time'] as int,
       msg_num: json['msg_num'] as String,
       msg: json['msg'] as String,
@@ -178,11 +182,11 @@ Map<String, dynamic> _$Item_dataToJson(Item_data instance) => <String, dynamic>{
       'dislike_count': instance.dislike_count,
       'vote_score': instance.vote_score,
       'no_of_quote': instance.no_of_quote,
-      'status': instance.status,
       'msg_num': instance.msg_num,
       'msg': instance.msg,
       'reply_time': instance.reply_time,
       'page': instance.page,
+      'status': instance.status,
       'user': instance.user,
       'quote': instance.quote
     };

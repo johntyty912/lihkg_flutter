@@ -11,6 +11,8 @@ class Page {
     this.success,
     this.server_time,
     this.response,
+    this.error_code,
+    this.error_message,
   });
 
   factory Page.fromJson(Map<String, dynamic> json) => _$PageFromJson(json);
@@ -19,6 +21,8 @@ class Page {
   final int success;
   final int server_time;
   final Response response;
+  final int error_code;
+  final String error_message;
 }
 
 @JsonSerializable()
@@ -173,17 +177,22 @@ class Item_data {
       dislike_count,
       vote_score,
       no_of_quote,
-      status,
       msg_num,
       msg;
   final int reply_time, page;
+  final dynamic status;
   final User user;
   final Item_data quote;
 }
 
-Future<Page> getPage(String pageURL, Map<String, String> query) async {
+Future<Page> getPage(String pageURL, Map<String, String> query, [Map<String, String> headers]) async {
   final Uri uri = Uri.parse(pageURL).replace(queryParameters: query);
-  final response = await http.get(uri.toString());
+  dynamic response;
+  if (headers == null) {
+    response = await http.get(uri.toString());
+  } else {
+    response = await http.get(uri.toString(), headers: headers);
+  }
   if (response.statusCode == 200) {
     return Page.fromJson(json.decode(response.body));
   } else {

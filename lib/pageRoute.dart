@@ -1,21 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 import 'src/thread.dart';
 import 'src/page.dart';
+import 'src/login.dart';
 import 'msgCard.dart';
 import 'dart:math';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 
 class pageRoute extends StatefulWidget {
 
   final Item thread;
-  pageRoute({Key key, @required this.thread}) : super(key: key);
+  final Login login;
+  pageRoute({Key key, @required this.thread, @required this.login}) : super(key: key);
 
   @override
-  pageRouteState createState() => pageRouteState(thread);
+  pageRouteState createState() => pageRouteState(thread, login);
 }
 
 class pageRouteState extends State<pageRoute> {
 
   Item thread;
+  Login login;
   int _page = 1;
   int _minPage;
   int _maxPage;
@@ -23,7 +29,7 @@ class pageRouteState extends State<pageRoute> {
   Map<int, Item_data> items = new Map();
   ScrollController _scrollController;
 
-  pageRouteState(this.thread);
+  pageRouteState(this.thread, this.login);
 
   @override
   void initState() {
@@ -52,13 +58,22 @@ class pageRouteState extends State<pageRoute> {
 
   Future<void> _onLoadPage() async {
     Map<int, Item_data> _tempMap = items;
+    Map<String, String> headers;
 
     final pageURL = "https://lihkg.com/api_v2/thread/${thread.thread_id}/page/${_page}";
     final Map<String,String> query = {
       "order": orderByHot ? "hot" : "reply_time",
     };
-
-    final page = await getPage(pageURL, query);
+    final String uri = Uri.parse(pageURL).replace(queryParameters: query).toString();
+    final String request_time = '${DateTime.now().millisecondsSinceEpoch}'.substring(0,10);
+    if (login != null) {
+      headers = {
+        'X-LI-USER': login.response.user.user_id,
+        'X-LI-REQUEST-TIME': '${request_time}',
+        'X-LI-DIGEST': sha1.convert(utf8.encode('jeams\$get\$${uri}\$\$${login.response.token}\$${request_time}')).toString(),
+      };
+    }
+    final page = await getPage(pageURL, query, headers);
     if (page.response == null) { return; }
     for (final item in page.response.item_data) {
       _tempMap[int.parse(item.msg_num)] = item;
