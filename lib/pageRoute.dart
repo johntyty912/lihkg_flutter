@@ -93,7 +93,7 @@ class pageRouteState extends State<pageRoute> {
         controller: _scrollController,
         itemCount: items.length,
         itemBuilder: (context, index) {
-          return msgCard(msg: items[index+items.keys.reduce(min)]);
+          return msgCard(msg: items[index+items.keys.reduce(min)], login: login,);
         },
       ),
     );

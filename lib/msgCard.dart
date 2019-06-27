@@ -7,20 +7,29 @@ import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:dotted_border/dotted_border.dart';
 import 'src/page.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
+import 'src/login.dart';
+
+import 'package:http/http.dart' as http;
 
 class msgCard extends StatefulWidget {
   final Item_data msg;
-  msgCard({Key key, @required this.msg}) : super(key: key);
+  final Login login;
+  msgCard({Key key, @required this.msg, @required this.login})
+      : super(key: key);
 
   @override
-  msgCardState createState() => msgCardState(msg);
+  msgCardState createState() => msgCardState(msg, login);
 }
 
 class msgCardState extends State<msgCard> {
   Item_data msg;
+  Login login;
+
   bool showImages = true;
   ImageErrorListener onImageError;
-  msgCardState(this.msg);
+  msgCardState(this.msg, this.login);
 
   Widget _customRender(dom.Node node, List<Widget> children) {
     if (node is dom.Element) {
@@ -120,6 +129,93 @@ class msgCardState extends State<msgCard> {
     print("opening ${url}");
   }
 
+  _onPressedLike() {
+    _vote(like: true);
+  }
+    _onPressedDislike() {
+    _vote(like: false);
+  }
+
+  _vote({bool like}) {
+    Map<String, String> headers;
+    String url = "https://lihkg.com/api_v2/thread/${msg.thread_id}";
+    String method;
+    if (msg.msg_num != "1") {
+      url += "/${msg.post_id}";
+      method = "get";
+    } else {
+      method = "post";
+    }
+    url += like? "/like": "/dislike";
+    if (login != null) {
+      final String requestTime =
+          '${DateTime.now().millisecondsSinceEpoch}'.substring(0, 10);
+      headers = {
+        'x-li-user': login.response.user.user_id,
+        'x-li-request-time': '$requestTime',
+        'x-li-digest': sha1
+            .convert(utf8.encode(
+                'jeams\$$method\$$url\$\$${login.response.token}\$$requestTime'))
+            .toString(),
+      };
+      if (msg.msg_num != "1") {
+        http.get(url, headers: headers).then((response) {
+          if (response.statusCode == 200) {
+            Map<String, dynamic> result = json.decode(response.body);
+            if (result['success'] == 0) {
+              return showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      content: Text(result['error_message']),
+                    );
+                  });
+            } else {
+              return showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      content: Text(like? "你已正評了這討論": "你已負評了這討論"),
+                    );
+                  });
+            }
+          }
+        });
+      } else {
+        http.post(url, headers: headers).then((response) {
+          if (response.statusCode == 200) {
+            Map<String, dynamic> result = json.decode(response.body);
+            if (result['success'] == 0) {
+              return showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      content: Text(result['error_message']),
+                    );
+                  });
+            } else {
+              return showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      content: Text(like? "你已正評了這討論": "你已負評了這討論"),
+                    );
+                  });
+            }
+          }
+        });
+      }
+    } else {
+      return showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              content: Text("請先登入"),
+            );
+          });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -149,10 +245,19 @@ class msgCardState extends State<msgCard> {
             padding: const EdgeInsets.all(8.0),
             child: Row(
               children: <Widget>[
-                Icon(Icons.thumb_up),
-                Text("100"),
-                Icon(Icons.thumb_down),
-                Text("200"),
+                IconButton(
+                  icon: Icon(
+                      msg.msg_num == "1" ? Icons.thumb_up : Icons.arrow_upward),
+                  onPressed: _onPressedLike,
+                ),
+                Text(msg.like_count),
+                IconButton(
+                  icon: Icon(msg.msg_num == "1"
+                      ? Icons.thumb_down
+                      : Icons.arrow_downward),
+                  onPressed: _onPressedDislike,
+                ),
+                Text(msg.dislike_count),
               ],
             ),
           ),

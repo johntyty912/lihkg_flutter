@@ -175,7 +175,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                       return ListTile(
                         title: Text(
                           subCat.thread_list[index].user_nickname,
-                          style: TextStyle(fontSize: 12.0, color: Colors.grey),
+                          style: TextStyle(fontSize: 14.0, color: subCat.thread_list[index].user_gender == "M"? Colors.blue: Colors.red),
                         ),
                         subtitle: Text(subCat.thread_list[index].title,
                             style:
