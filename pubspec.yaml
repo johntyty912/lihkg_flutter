@@ -29,6 +29,7 @@ dependencies:
   flutter_linkify: ^2.1.0
   dotted_border: ^0.1.1
   unique_identifier: ^0.0.3
+  shared_preferences: ^0.5.3+1
 
 dev_dependencies:
   flutter_test:

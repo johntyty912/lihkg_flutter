@@ -7,7 +7,8 @@ class loginRoute extends StatefulWidget {
 }
 
 class loginRouteState extends State<loginRoute> {
-  Login _result;
+  // Login _result;
+  List<dynamic> _result = new List();
 
   final _emailController = new TextEditingController();
   final _passwordController = new TextEditingController();
@@ -17,7 +18,7 @@ class loginRouteState extends State<loginRoute> {
       "email": _emailController.text,
       "password": _passwordController.text,
     };
-    final Login result = await pushLogin(body);
+    final Login result = await postLogin(body);
     return result;
   }
 
@@ -90,7 +91,9 @@ class loginRouteState extends State<loginRoute> {
                       );
                     });
               } else if (result.success == 1) {
-                _result = result;
+                _result.add(result);
+                _result.add(_emailController.text);
+                _result.add(_passwordController.text);
                 Navigator.pop(context, _result);
               }
             });

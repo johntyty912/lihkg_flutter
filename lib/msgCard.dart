@@ -8,7 +8,6 @@ import 'package:html/dom.dart' as dom;
 import 'package:dotted_border/dotted_border.dart';
 import 'src/page.dart';
 import 'package:crypto/crypto.dart';
-import 'dart:convert';
 import 'src/login.dart';
 
 import 'package:http/http.dart' as http;
@@ -132,11 +131,12 @@ class msgCardState extends State<msgCard> {
   _onPressedLike() {
     _vote(like: true);
   }
-    _onPressedDislike() {
+
+  _onPressedDislike() {
     _vote(like: false);
   }
 
-  _vote({bool like}) {
+  _vote({bool like}) async {
     Map<String, String> headers;
     String url = "https://lihkg.com/api_v2/thread/${msg.thread_id}";
     String method;
@@ -146,7 +146,7 @@ class msgCardState extends State<msgCard> {
     } else {
       method = "post";
     }
-    url += like? "/like": "/dislike";
+    url += like ? "/like" : "/dislike";
     if (login != null) {
       final String requestTime =
           '${DateTime.now().millisecondsSinceEpoch}'.substring(0, 10);
@@ -158,52 +158,31 @@ class msgCardState extends State<msgCard> {
                 'jeams\$$method\$$url\$\$${login.response.token}\$$requestTime'))
             .toString(),
       };
+      var response;
       if (msg.msg_num != "1") {
-        http.get(url, headers: headers).then((response) {
-          if (response.statusCode == 200) {
-            Map<String, dynamic> result = json.decode(response.body);
-            if (result['success'] == 0) {
-              return showDialog(
-                  context: context,
-                  builder: (context) {
-                    return AlertDialog(
-                      content: Text(result['error_message']),
-                    );
-                  });
-            } else {
-              return showDialog(
-                  context: context,
-                  builder: (context) {
-                    return AlertDialog(
-                      content: Text(like? "你已正評了這討論": "你已負評了這討論"),
-                    );
-                  });
-            }
-          }
-        });
+        response = await http.get(url, headers: headers);
       } else {
-        http.post(url, headers: headers).then((response) {
-          if (response.statusCode == 200) {
-            Map<String, dynamic> result = json.decode(response.body);
-            if (result['success'] == 0) {
-              return showDialog(
-                  context: context,
-                  builder: (context) {
-                    return AlertDialog(
-                      content: Text(result['error_message']),
-                    );
-                  });
-            } else {
-              return showDialog(
-                  context: context,
-                  builder: (context) {
-                    return AlertDialog(
-                      content: Text(like? "你已正評了這討論": "你已負評了這討論"),
-                    );
-                  });
-            }
-          }
-        });
+        response = await http.post(url, headers: headers);
+      }
+      if (response.statusCode == 200) {
+        Map<String, dynamic> result = json.decode(response.body);
+        if (result['success'] == 0) {
+          return showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  content: Text(result['error_message']),
+                );
+              });
+        } else {
+          return showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  content: Text(like ? "你已正評了這討論" : "你已負評了這討論"),
+                );
+              });
+        }
       }
     } else {
       return showDialog(

@@ -1,3 +1,5 @@
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'src/property.dart';
@@ -50,13 +52,33 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   ScrollController _scrollController;
 
   login.Login _login;
+  SharedPreferences prefs;
+  List<String> loginInfo;
 
   @override
   void initState() {
     super.initState();
     _scrollController = new ScrollController();
     _scrollController.addListener(_scrollListener);
+    _onLoginCache();
     _onCreate();
+  }
+
+  _onLoginCache() async {
+    prefs = await SharedPreferences.getInstance();
+    loginInfo = prefs.getStringList("loginInfo") ?? new List<String>();
+    if (loginInfo.isNotEmpty) {
+      _login = await onLogin();
+    }
+  }
+
+  Future<login.Login> onLogin() async {
+    final Map<String, String> body = {
+      "email": loginInfo[0],
+      "password": loginInfo[1],
+    };
+    final result = await login.postLogin(body);
+    return result;
   }
 
   Future<void> _onCreate() async {
@@ -69,14 +91,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
     for (final sub_cat in _category[_selected_cat_id].sub_category) {
       final thread_list = await thread.getThread(sub_cat.url, sub_cat.query);
-      //   _tempList.add(
-      //       new DynamicTabContent.name(sub_cat.name, thread_list.response.items));
-      // }
       _tempMap[sub_cat.name] = new DynamicTabContent.name(
           sub_cat.name, thread_list.response.items, sub_cat.url, sub_cat.query);
     }
     setState(() {
-      // _subCatList = _tempList;
       _subCats = _tempMap;
       _selectedSubCat = _subCats.keys.toList()[0];
       _tabController = new TabController(vsync: this, length: _subCats.length);
@@ -98,7 +116,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     if (_scrollController.offset >=
             _scrollController.position.maxScrollExtent &&
         !_scrollController.position.outOfRange) {
-      print("hi");
       _onLoadThread();
     }
   }
@@ -110,7 +127,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     _query['page'] = "${_subCats[_selectedSubCat]._page}";
     final thread_list =
         await thread.getThread(_subCats[_selectedSubCat].sub_cat_url, _query);
-    if (thread_list.success==0) { return; }
+    if (thread_list.success == 0) {
+      return;
+    }
     for (final item in thread_list.response.items) {
       _tempList.add(item);
     }
@@ -175,7 +194,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                       return ListTile(
                         title: Text(
                           subCat.thread_list[index].user_nickname,
-                          style: TextStyle(fontSize: 14.0, color: subCat.thread_list[index].user_gender == "M"? Colors.blue: Colors.red),
+                          style: TextStyle(
+                              fontSize: 14.0,
+                              color:
+                                  subCat.thread_list[index].user_gender == "M"
+                                      ? Colors.blue
+                                      : Colors.red),
                         ),
                         subtitle: Text(subCat.thread_list[index].title,
                             style:
@@ -185,8 +209,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                             context,
                             MaterialPageRoute(
                                 builder: (context) => pageRoute(
-                                    thread: subCat.thread_list[index],
-                                    login: _login,)),
+                                      thread: subCat.thread_list[index],
+                                      login: _login,
+                                    )),
                           );
                         },
                       );
@@ -203,8 +228,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               ? <Widget>[]
               : <Widget>[
                   new ListTile(
-                    title: _login==null? Text("登入") : Text(_login.response.me.nickname),
-                    onTap: _login==null? onTapLogin : onTapUserName,
+                    title: _login == null
+                        ? Text("登入")
+                        : Text(_login.response.me.nickname),
+                    onTap: _login == null ? onTapLogin : onTapUserName,
                   ),
                   ...getListTileFromCategory(_category),
                 ],
@@ -214,19 +241,29 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   onTapUserName() {
-    print(_login.response.token); //49b46c864f442695fe1d6827a151f890c2fcb676
+    print(_login.response.token);
+    onTapLogout();
+  }
+
+  onTapLogout() {
+    prefs.clear();
+    setState(() {
+     _login = null; 
+    });
   }
 
   onTapLogin() {
     Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => loginRoute())).then((result) {
-              setState(() {
-                _login = result;
-              });
-              print(_login.response.me.nickname);
-            });
+            context, MaterialPageRoute(builder: (context) => loginRoute()))
+        .then((result) {
+      setState(() {
+        _login = result[0];
+      });
+      List<String> tempList = new List<String>();
+      tempList.add(result[1]);
+      tempList.add(result[2]);
+      prefs.setStringList("loginInfo", tempList);
+    });
   }
 
   Widget LoadingPage() {

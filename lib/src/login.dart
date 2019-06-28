@@ -114,7 +114,7 @@ class PushSetting {
   final bool all, show_preview, new_reply, quote, following_new_thread;
 }
 
-Future<Login> pushLogin(Map<String, String> body) async {
+Future<Login> postLogin(Map<String, String> body) async {
   final String loginURL = "https://lihkg.com/api_v2/auth/login";
   final response = await http.post(loginURL, body: body);
   if (response.statusCode == 200) {
