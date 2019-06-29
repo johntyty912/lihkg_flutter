@@ -1,3 +1,4 @@
+import 'package:lihkg_flutter/userInfoRoute.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:flutter/cupertino.dart';
@@ -83,7 +84,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   Future<void> _onCreate() async {
     final property = await getProperty();
-    // List<DynamicTabContent> _tempList = new List();
     Map<String, DynamicTabContent> _tempMap = new Map();
     for (final category in property.response.category_list) {
       _category[category.cat_id] = category;
@@ -125,12 +125,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     Map<String, String> _query = _subCats[_selectedSubCat].query;
     _subCats[_selectedSubCat]._page++;
     _query['page'] = "${_subCats[_selectedSubCat]._page}";
-    final thread_list =
+    final threadList =
         await thread.getThread(_subCats[_selectedSubCat].sub_cat_url, _query);
-    if (thread_list.success == 0) {
+    if (threadList.success == 0) {
       return;
     }
-    for (final item in thread_list.response.items) {
+    for (final item in threadList.response.items) {
       _tempList.add(item);
     }
     setState(() {
@@ -241,14 +241,20 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   onTapUserName() {
-    print(_login.response.token);
-    onTapLogout();
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => userInfoRoute(login: _login))).then((result) {
+      if (result) {
+        onTapLogout();
+      }
+    });
   }
 
   onTapLogout() {
     prefs.clear();
     setState(() {
-     _login = null; 
+      _login = null;
     });
   }
 

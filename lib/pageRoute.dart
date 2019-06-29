@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
 import 'src/thread.dart';
 import 'src/page.dart';
 import 'src/login.dart';
