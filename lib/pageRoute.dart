@@ -31,6 +31,13 @@ class pageRouteState extends State<pageRoute> {
   pageRouteState(this.thread, this.login);
 
   @override
+  void setState(fn) {
+    if(mounted) {
+      super.setState(fn);
+    }
+  }
+
+  @override
   void initState() {
     _minPage = _page;
     _maxPage = _page;

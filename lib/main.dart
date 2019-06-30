@@ -59,6 +59,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   TextEditingController _searchController = new TextEditingController();
 
   @override
+  void setState(fn) {
+    if(mounted) {
+      super.setState(fn);
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
     _onLoginCache();
@@ -256,9 +263,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   onSearchEditingComplete(String q) async {
-    setState(() {
-      _subCats.clear();
-    });
+    // setState(() {
+    //   _subCats.clear();
+    // });
+    Map<String, DynamicTabContent> _tempMap = new Map();
     final String url = 'https://lihkg.com/api_v2/thread/search';
     for (final sub_cat in ['最相關','主題新至舊','回覆新至舊']) {
       Map<String, String> query = {
@@ -270,14 +278,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       else if (sub_cat == '主題新至舊') {query['sort']='desc_create_time';}
       else if (sub_cat == '回覆新至舊') {query['sort']='desc_reply_time';}
       final threadList = await thread.getThread(url, query);
-      _subCats[sub_cat] = new DynamicTabContent.name(
+      _tempMap[sub_cat] = new DynamicTabContent.name(
           sub_cat, threadList.response.items, url, query);
       // print("$sub_cat: ${_subCats[sub_cat].query}");
-      _subCats[sub_cat]._scrollController.addListener(_scrollListener);
+      _tempMap[sub_cat]._scrollController.addListener(_scrollListener);
     }
-    _selectedSubCat = _subCats.keys.toList()[0];
+    _selectedSubCat = _tempMap.keys.toList()[0];
     setState(() {
-      _tabController = new TabController(vsync: this, length: _subCats.length);
+      _subCats = _tempMap;
+      _tabController = new TabController(vsync: this, length: _tempMap.length);
       _tabController.addListener(_tabListener);
       _tabPageSelector = new TabPageSelector(
         controller: _tabController,
