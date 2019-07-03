@@ -24,17 +24,21 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2
   http: ^0.12.0+1
-  json_serializable: ^2.0.2
+  json_annotation: ^2.4.0
   flutter_html: ^0.10.4
   flutter_linkify: ^2.1.0
   dotted_border: ^0.1.1
   unique_identifier: ^0.0.3
   shared_preferences: ^0.5.3+1
+  lihkg_api:
+    git:
+      url: git://github.com/johntyty912/lihkg_api_dart.git
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   build_runner: ^1.0.0
+  json_serializable: ^3.0.0
 
 
 # For information on the generic Dart part of this file, see the
