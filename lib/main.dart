@@ -1,5 +1,6 @@
 import 'package:lihkg_flutter/userInfoRoute.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:lihkg_api/lihkg_api.dart' as api;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
