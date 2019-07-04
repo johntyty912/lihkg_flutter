@@ -67,10 +67,12 @@ class pageRouteState extends State<pageRoute> {
     if (page.response == null) {
       return;
     }
-    _tempMap[_page] = page.response.itemData;
-    setState(() {
-      items = _tempMap;
-    });
+    if (page.response.itemData.isNotEmpty) {
+      _tempMap[_page] = page.response.itemData;
+      setState(() {
+        items = _tempMap;
+      });
+    }
   }
 
   List<MsgCard> msgCardGenerator(List<ItemData> items, LihkgClient _client) {
@@ -91,9 +93,9 @@ class pageRouteState extends State<pageRoute> {
   Widget _buildHeader(int index, {String text}) {
     return new Container(
       height: 60.0,
-      color: Colors.lightBlue,
+      color: Color.fromARGB(200, 150, 225, 255),
       padding: EdgeInsets.symmetric(horizontal: 16.0),
-      alignment: Alignment.centerLeft,
+      alignment: Alignment.center,
       child: new Text(
         text ?? '第${index}頁',
         style: const TextStyle(color: Colors.white),
@@ -101,11 +103,13 @@ class pageRouteState extends State<pageRoute> {
     );
   }
 
-  List<Widget> _buildLists(BuildContext context, Map<int, List<ItemData>> items) {
+  List<Widget> _buildLists(
+      BuildContext context, Map<int, List<ItemData>> items) {
     int count = items.length;
     return List.generate(count, (index) {
       int page = items.keys.toList()[index];
       return new SliverStickyHeader(
+        overlapsContent: false,
         header: _buildHeader(page),
         sliver: new SliverList(
           delegate: new SliverChildBuilderDelegate(
@@ -122,6 +126,24 @@ class pageRouteState extends State<pageRoute> {
     return Scaffold(
       appBar: AppBar(
         title: Text(thread.title),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(
+              Icons.flash_on,
+              color: orderByScore ? Colors.yellowAccent : Colors.white,
+            ),
+            onPressed: () {
+              setState(() {
+                orderByScore = !orderByScore;
+                _page = 1;
+                _maxPage = _page;
+                _minPage = _page;
+              });
+              items.clear();
+              _onLoadPage();
+            },
+          ),
+        ],
       ),
       body: CustomScrollView(
         controller: _scrollController,
