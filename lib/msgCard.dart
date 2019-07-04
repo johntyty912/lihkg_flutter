@@ -6,29 +6,25 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:dotted_border/dotted_border.dart';
-import 'src/page.dart';
-import 'package:crypto/crypto.dart';
-import 'src/login.dart';
+import 'package:lihkg_api/lihkg_api.dart';
 
-import 'package:http/http.dart' as http;
-
-class msgCard extends StatefulWidget {
-  final Item_data msg;
-  final Login login;
-  msgCard({Key key, @required this.msg, @required this.login})
+class MsgCard extends StatefulWidget {
+  final ItemData msg;
+  final LihkgClient client;
+  MsgCard({Key key, @required this.msg, @required this.client})
       : super(key: key);
 
   @override
-  msgCardState createState() => msgCardState(msg, login);
+  MsgCardState createState() => MsgCardState(msg, client);
 }
 
-class msgCardState extends State<msgCard> {
-  Item_data msg;
-  Login login;
+class MsgCardState extends State<MsgCard> {
+  ItemData msg;
+  LihkgClient _client;
 
   bool showImages = true;
   ImageErrorListener onImageError;
-  msgCardState(this.msg, this.login);
+  MsgCardState(this.msg, this._client);
 
   Widget _customRender(dom.Node node, List<Widget> children) {
     if (node is dom.Element) {
@@ -137,52 +133,24 @@ class msgCardState extends State<msgCard> {
   }
 
   _vote({bool like}) async {
-    Map<String, String> headers;
-    String url = "https://lihkg.com/api_v2/thread/${msg.thread_id}";
-    String method;
-    if (msg.msg_num != "1") {
-      url += "/${msg.post_id}";
-      method = "get";
-    } else {
-      method = "post";
-    }
-    url += like ? "/like" : "/dislike";
-    if (login != null) {
-      final String requestTime =
-          '${DateTime.now().millisecondsSinceEpoch}'.substring(0, 10);
-      headers = {
-        'x-li-user': login.response.user.user_id,
-        'x-li-request-time': '$requestTime',
-        'x-li-digest': sha1
-            .convert(utf8.encode(
-                'jeams\$$method\$$url\$\$${login.response.token}\$$requestTime'))
-            .toString(),
-      };
-      var response;
-      if (msg.msg_num != "1") {
-        response = await http.get(url, headers: headers);
+    if (_client.logined) {
+      final response = await _client.vote(msg, isLike: like);
+      if (response.success == 0) {
+        return showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                content: Text(response.errorMessage ?? ''),
+              );
+            });
       } else {
-        response = await http.post(url, headers: headers);
-      }
-      if (response.statusCode == 200) {
-        Map<String, dynamic> result = json.decode(response.body);
-        if (result['success'] == 0) {
-          return showDialog(
-              context: context,
-              builder: (context) {
-                return AlertDialog(
-                  content: Text(result['error_message']),
-                );
-              });
-        } else {
-          return showDialog(
-              context: context,
-              builder: (context) {
-                return AlertDialog(
-                  content: Text(like ? "你已正評了這討論" : "你已負評了這討論"),
-                );
-              });
-        }
+        return showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                content: Text(like ? "你已正評了這討論" : "你已負評了這討論"),
+              );
+            });
       }
     } else {
       return showDialog(
@@ -205,11 +173,11 @@ class msgCardState extends State<msgCard> {
             padding: const EdgeInsets.all(8.0),
             child: Row(
               children: <Widget>[
-                Text("#${msg.msg_num} "),
-                Text("${msg.user_nickname}",
+                Text("#${msg.msgNum} "),
+                Text("${msg.userNickname}",
                     style: TextStyle(
                         color:
-                            msg.user_gender == "M" ? Colors.blue : Colors.red,
+                            msg.userGender == "M" ? Colors.blue : Colors.red,
                         fontSize: 20.0)),
               ],
             ),
@@ -226,17 +194,17 @@ class msgCardState extends State<msgCard> {
               children: <Widget>[
                 IconButton(
                   icon: Icon(
-                      msg.msg_num == "1" ? Icons.thumb_up : Icons.arrow_upward),
+                      msg.msgNum == "1" ? Icons.thumb_up : Icons.arrow_upward),
                   onPressed: _onPressedLike,
                 ),
-                Text(msg.like_count),
+                Text(msg.likeCount),
                 IconButton(
-                  icon: Icon(msg.msg_num == "1"
+                  icon: Icon(msg.msgNum == "1"
                       ? Icons.thumb_down
                       : Icons.arrow_downward),
                   onPressed: _onPressedDislike,
                 ),
-                Text(msg.dislike_count),
+                Text(msg.dislikeCount),
               ],
             ),
           ),

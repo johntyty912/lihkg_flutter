@@ -1,25 +1,30 @@
 import 'package:flutter/material.dart';
-import 'src/login.dart';
+import 'package:lihkg_api/lihkg_api.dart';
 
-class loginRoute extends StatefulWidget {
+class LoginRoute extends StatefulWidget {
+  final LihkgClient client;
+
+  LoginRoute({Key key, @required this.client})
+      : super(key: key);
   @override
-  loginRouteState createState() => loginRouteState();
+  LoginRouteState createState() => LoginRouteState(client);
 }
 
-class loginRouteState extends State<loginRoute> {
-  // Login _result;
+class LoginRouteState extends State<LoginRoute> {
+  LihkgClient _client;
+  LoginRouteState(this._client);
+  
   List<dynamic> _result = new List();
 
   final _emailController = new TextEditingController();
   final _passwordController = new TextEditingController();
 
-  Future<Login> onPressedLoginButton() async {
+  Future<BaseResponse<LoginResponse>> onPressedLoginButton() async {
     final Map<String, String> body = {
       "email": _emailController.text,
       "password": _passwordController.text,
     };
-    final Login result = await postLogin(body);
-    return result;
+    return await _client.postLogin(body);
   }
 
   @override
@@ -87,11 +92,11 @@ class loginRouteState extends State<loginRoute> {
                     context: context,
                     builder: (context) {
                       return AlertDialog(
-                        content: Text(result.error_message),
+                        content: Text(result.errorMessage),
                       );
                     });
               } else if (result.success == 1) {
-                _result.add(result);
+                _result.add(_client);
                 _result.add(_emailController.text);
                 _result.add(_passwordController.text);
                 Navigator.pop(context, _result);

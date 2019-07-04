@@ -1,14 +1,11 @@
-import 'package:lihkg_flutter/userInfoRoute.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:lihkg_api/lihkg_api.dart' as api;
+import 'package:lihkg_api/lihkg_api.dart';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'src/property.dart';
-import 'src/thread.dart' as thread;
-import 'src/login.dart' as login;
 import 'pageRoute.dart';
 import 'loginRoute.dart';
+import 'userInfoRoute.dart';
 
 void main() => runApp(MyApp());
 
@@ -26,16 +23,23 @@ class MyApp extends StatelessWidget {
 }
 
 class DynamicTabContent {
-  String sub_cat_name;
-  List<thread.Item> thread_list;
-  String sub_cat_url;
+  String tabName;
+  SubCategory subCategory;
+  List<Item> threadList;
   Map<String, String> query;
-  int _page = 1;
+  String searchKeyword;
+  int page = 1;
+  bool isSearch = false;
 
   ScrollController _scrollController = new ScrollController();
 
-  DynamicTabContent.name(
-      this.sub_cat_name, this.thread_list, this.sub_cat_url, this.query);
+  DynamicTabContent.fromSubCat(
+      this.tabName, this.subCategory, this.threadList, this.query)
+      : this.isSearch = false;
+
+  DynamicTabContent.fromSearch(
+      this.tabName, this.threadList, this.searchKeyword)
+      : this.isSearch = true;
 }
 
 class MyHomePage extends StatefulWidget {
@@ -44,16 +48,19 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
-  String _selected_cat_id = "1";
+  LihkgClient _client;
+  User _me;
+  bool _logined = false;
+
+  String _selectedCatID = "1";
   String _selectedSubCat;
 
   Map<String, Category> _category = new Map();
   Map<String, DynamicTabContent> _subCats = new Map();
 
   TabController _tabController;
-  TabPageSelector _tabPageSelector;
 
-  login.Login _login;
+  LoginResponse _login;
   SharedPreferences prefs;
   List<String> loginInfo;
 
@@ -61,7 +68,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   @override
   void setState(fn) {
-    if(mounted) {
+    if (mounted) {
       super.setState(fn);
     }
   }
@@ -69,6 +76,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    _client = new LihkgClient();
     _onLoginCache();
     _onCreate();
   }
@@ -77,66 +85,73 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     prefs = await SharedPreferences.getInstance();
     loginInfo = prefs.getStringList("loginInfo") ?? new List<String>();
     if (loginInfo.isNotEmpty) {
-      _login = await onLogin();
+      final Map<String, String> body = {
+        "email": loginInfo[0],
+        "password": loginInfo[1],
+      };
+      BaseResponse<LoginResponse> loginResponse = await _client.postLogin(body);
+      _me = loginResponse.response.me;
+      _logined = true;
     }
-  }
-
-  Future<login.Login> onLogin() async {
-    final Map<String, String> body = {
-      "email": loginInfo[0],
-      "password": loginInfo[1],
-    };
-    final result = await login.postLogin(body);
-    return result;
   }
 
   Future<void> _onCreate() async {
-    final property = await getProperty();
+    final property = await _client.getProperty();
     Map<String, DynamicTabContent> _tempMap = new Map();
-    for (final category in property.response.category_list) {
-      _category[category.cat_id] = category;
+    for (final category in property.response.categoryList) {
+      _category[category.catId] = category;
     }
 
-    for (final sub_cat in _category[_selected_cat_id].sub_category) {
-      final threadList = await thread.getThread(sub_cat.url, sub_cat.query);
-      _tempMap[sub_cat.name] = new DynamicTabContent.name(
-          sub_cat.name, threadList.response.items, sub_cat.url, sub_cat.query);
-      _tempMap[sub_cat.name]._scrollController.addListener(_scrollListener);
+    for (final subCat in _category[_selectedCatID].subCategory) {
+      final threadList = await _client.getCategory(subCat, 1);
+      _tempMap[subCat.name] = new DynamicTabContent.fromSubCat(
+          subCat.name, subCat, threadList.response.items, subCat.query);
+      _tempMap[subCat.name]._scrollController.addListener(_scrollListener);
     }
     setState(() {
       _subCats = _tempMap;
       _selectedSubCat = _subCats.keys.toList()[0];
       _tabController = new TabController(vsync: this, length: _subCats.length);
       _tabController.addListener(_tabListener);
-      _tabPageSelector = new TabPageSelector(
-        controller: _tabController,
-      );
     });
   }
 
   _tabListener() {
     if (_tabController.indexIsChanging) {
       _selectedSubCat = _subCats.keys.toList()[_tabController.index];
-      // print("$_selectedSubCat: ${_subCats[_selectedSubCat].query}");
     }
   }
 
   _scrollListener() {
     if (_subCats[_selectedSubCat]._scrollController.offset >=
-            _subCats[_selectedSubCat]._scrollController.position.maxScrollExtent &&
+            _subCats[_selectedSubCat]
+                ._scrollController
+                .position
+                .maxScrollExtent &&
         !_subCats[_selectedSubCat]._scrollController.position.outOfRange) {
       _onLoadThread();
     }
   }
 
   Future<void> _onLoadThread() async {
-    List<thread.Item> _tempList = _subCats[_selectedSubCat].thread_list;
-    Map<String, String> _query = _subCats[_selectedSubCat].query;
-    _subCats[_selectedSubCat]._page++;
-    _query['page'] = "${_subCats[_selectedSubCat]._page}";
-    print(_query);
-    final threadList =
-        await thread.getThread(_subCats[_selectedSubCat].sub_cat_url, _query);
+    List<Item> _tempList = _subCats[_selectedSubCat].threadList;
+    _subCats[_selectedSubCat].page++;
+    var threadList;
+    if (_subCats[_selectedSubCat].isSearch) {
+      Map<String, String> _searchtabMap = {
+        '最相關': 'score',
+        '主題新至舊': 'desc_create_time',
+        '回覆新至舊': 'desc_reply_time'
+      };
+      threadList = await _client.getSearch(
+          _subCats[_selectedSubCat].searchKeyword,
+          sort: _searchtabMap[_selectedSubCat],
+          page: _subCats[_selectedSubCat].page);
+    } else {
+      threadList = await _client.getCategory(
+          _subCats[_selectedSubCat].subCategory,
+          _subCats[_selectedSubCat].page);
+    }
     if (threadList.success == 0) {
       return;
     }
@@ -144,7 +159,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       _tempList.add(item);
     }
     setState(() {
-      _subCats[_selectedSubCat].thread_list = _tempList;
+      _subCats[_selectedSubCat].threadList = _tempList;
     });
   }
 
@@ -152,19 +167,16 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     setState(() {
       _subCats.clear();
     });
-    for (final sub_cat in _category[_selected_cat_id].sub_category) {
-      final threadList = await thread.getThread(sub_cat.url, sub_cat.query);
-      _subCats[sub_cat.name] = new DynamicTabContent.name(
-          sub_cat.name, threadList.response.items, sub_cat.url, sub_cat.query);
-      _subCats[sub_cat.name]._scrollController.addListener(_scrollListener);
+    for (final subCat in _category[_selectedCatID].subCategory) {
+      final threadList = await _client.getCategory(subCat, 1);
+      _subCats[subCat.name] = new DynamicTabContent.fromSubCat(
+          subCat.name, subCat, threadList.response.items, subCat.query);
+      _subCats[subCat.name]._scrollController.addListener(_scrollListener);
     }
     _selectedSubCat = _subCats.keys.toList()[0];
     setState(() {
       _tabController = new TabController(vsync: this, length: _subCats.length);
       _tabController.addListener(_tabListener);
-      _tabPageSelector = new TabPageSelector(
-        controller: _tabController,
-      );
     });
   }
 
@@ -187,7 +199,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   TabBar(
                       tabs: _subCats.values.map((subCat) {
                         return new Tab(
-                          text: subCat.sub_cat_name,
+                          text: subCat.tabName,
                         );
                       }).toList(),
                       controller: _tabController)
@@ -200,19 +212,18 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             : _subCats.values.map((subCat) {
                 return ListView.separated(
                     controller: subCat._scrollController,
-                    itemCount: subCat.thread_list.length,
+                    itemCount: subCat.threadList.length,
                     itemBuilder: (context, index) {
                       return ListTile(
                         title: Text(
-                          subCat.thread_list[index].user_nickname,
+                          subCat.threadList[index].userNickname,
                           style: TextStyle(
                               fontSize: 14.0,
-                              color:
-                                  subCat.thread_list[index].user_gender == "M"
-                                      ? Colors.blue
-                                      : Colors.red),
+                              color: subCat.threadList[index].userGender == "M"
+                                  ? Colors.blue
+                                  : Colors.red),
                         ),
-                        subtitle: Text(subCat.thread_list[index].title,
+                        subtitle: Text(subCat.threadList[index].title,
                             style:
                                 TextStyle(fontSize: 16.0, color: Colors.black)),
                         onTap: () {
@@ -220,8 +231,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                             context,
                             MaterialPageRoute(
                                 builder: (context) => pageRoute(
-                                      thread: subCat.thread_list[index],
-                                      login: _login,
+                                      thread: subCat.threadList[index],
+                                      client: _client,
                                     )),
                           );
                         },
@@ -239,9 +250,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               ? <Widget>[]
               : <Widget>[
                   ListTile(
-                    title: _login == null
-                        ? Text("登入")
-                        : Text(_login.response.me.nickname),
+                    title: _login == null ? Text("登入") : Text(_me.nickname),
                     onTap: _login == null ? onTapLogin : onTapUserName,
                   ),
                   TextFormField(
@@ -249,7 +258,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     decoration: InputDecoration(
                       hintText: '搜尋',
                       contentPadding: EdgeInsets.fromLTRB(5.0, 5.0, 5.0, 5.0),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(32.0)),
                     ),
                     controller: _searchController,
                     onEditingComplete: () {
@@ -264,42 +274,30 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   onSearchEditingComplete(String q) async {
-    // setState(() {
-    //   _subCats.clear();
-    // });
     Map<String, DynamicTabContent> _tempMap = new Map();
-    final String url = 'https://lihkg.com/api_v2/thread/search';
-    for (final sub_cat in ['最相關','主題新至舊','回覆新至舊']) {
-      Map<String, String> query = {
-        'q': q,
-        'page': '1',
-        'count': '30',
-      };
-      if (sub_cat == '最相關') {query['sort']='score';}
-      else if (sub_cat == '主題新至舊') {query['sort']='desc_create_time';}
-      else if (sub_cat == '回覆新至舊') {query['sort']='desc_reply_time';}
-      final threadList = await thread.getThread(url, query);
-      _tempMap[sub_cat] = new DynamicTabContent.name(
-          sub_cat, threadList.response.items, url, query);
-      // print("$sub_cat: ${_subCats[sub_cat].query}");
-      _tempMap[sub_cat]._scrollController.addListener(_scrollListener);
+    Map<String, String> _tabMap = {
+      '最相關': 'score',
+      '主題新至舊': 'desc_create_time',
+      '回覆新至舊': 'desc_reply_time'
+    };
+    for (final _tabName in _tabMap.keys) {
+      final response = await _client.getSearch(q, sort: _tabMap[_tabName]);
+      _tempMap[_tabName] =
+          DynamicTabContent.fromSearch(_tabName, response.response.items, q);
+      _tempMap[_tabName]._scrollController.addListener(_scrollListener);
     }
     _selectedSubCat = _tempMap.keys.toList()[0];
     setState(() {
       _subCats = _tempMap;
       _tabController = new TabController(vsync: this, length: _tempMap.length);
       _tabController.addListener(_tabListener);
-      _tabPageSelector = new TabPageSelector(
-        controller: _tabController,
-      );
     });
   }
 
   onTapUserName() {
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => userInfoRoute(login: _login))).then((result) {
+    Navigator.push(context,
+            MaterialPageRoute(builder: (context) => userInfoRoute(me: _me)))
+        .then((result) {
       if (result) {
         onTapLogout();
       }
@@ -315,10 +313,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   onTapLogin() {
     Navigator.push(
-            context, MaterialPageRoute(builder: (context) => loginRoute()))
-        .then((result) {
+        context,
+        MaterialPageRoute(
+            builder: (context) => LoginRoute(client: _client))).then((result) {
       setState(() {
-        _login = result[0];
+        _client = result[0];
       });
       List<String> tempList = new List<String>();
       tempList.add(result[1]);
@@ -341,10 +340,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     for (Category cat in _category.values) {
       tempList.add(new ListTile(
         title: Text(cat.name),
-        selected: (cat.cat_id == _selected_cat_id) ? true : false,
+        selected: (cat.catId == _selectedCatID) ? true : false,
         onTap: () {
           setState(() {
-            _selected_cat_id = cat.cat_id;
+            _selectedCatID = cat.catId;
           });
           _onChangeSelectedCatID();
           Navigator.of(context).pop();

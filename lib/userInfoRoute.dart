@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:lihkg_flutter/src/login.dart';
+import 'package:lihkg_api/lihkg_api.dart';
 
 class userInfoRoute extends StatefulWidget {
-  final Login login;
-  userInfoRoute({Key key, @required this.login}) : super(key: key);
+  final User me;
+  userInfoRoute({Key key, @required this.me}) : super(key: key);
 
   @override
-  State<StatefulWidget> createState()  => userInfoRouteState(login);
+  State<StatefulWidget> createState()  => userInfoRouteState(me);
 }
 
 class userInfoRouteState extends State<userInfoRoute> {
-  Login login;
-  userInfoRouteState(this.login);
+  User _me;
+  userInfoRouteState(this._me);
 
   String timestampToString(int timestamp) {
     DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp*1000);
@@ -28,14 +28,14 @@ class userInfoRouteState extends State<userInfoRoute> {
         children: <Widget>[
           ListTile(
             leading: CircleAvatar(
-              child: Text(login.response.me.nickname[0]),
+              child: Text(_me.nickname[0]),
             ),
-            title: Text(login.response.me.nickname),
+            title: Text(_me.nickname),
           ),
           Divider(),
           ListTile(
             title: Text('註冊日期'),
-            trailing: Text(timestampToString(login.response.me.create_time)),
+            trailing: Text(timestampToString(_me.createTime)),
           ),
           Divider(),
           ListTile(
