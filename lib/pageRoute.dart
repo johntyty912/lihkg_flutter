@@ -75,15 +75,6 @@ class pageRouteState extends State<pageRoute> {
     }
   }
 
-  List<MsgCard> msgCardGenerator(List<ItemData> items, LihkgClient _client) {
-    return List<MsgCard>.generate(
-        items.length,
-        (i) => MsgCard(
-              msg: items[i],
-              client: _client,
-            ));
-  }
-
   List<Widget> _buildSlivers(BuildContext context) {
     List<Widget> slivers = new List<Widget>();
     slivers.addAll(_buildLists(context, items));
@@ -106,8 +97,9 @@ class pageRouteState extends State<pageRoute> {
   List<Widget> _buildLists(
       BuildContext context, Map<int, List<ItemData>> items) {
     int count = items.length;
+    List<int> sortedKeys = items.keys.toList()..sort();
     return List.generate(count, (index) {
-      int page = items.keys.toList()[index];
+      int page = sortedKeys[index];
       return new SliverStickyHeader(
         overlapsContent: false,
         header: _buildHeader(page),
@@ -119,6 +111,16 @@ class pageRouteState extends State<pageRoute> {
         ),
       );
     });
+  }
+
+  _onSelectPage(int page) {
+    _page = page;
+    _maxPage = _page;
+    _minPage = _page;
+    setState(() {
+      items.clear();
+    });
+    _onLoadPage();
   }
 
   @override
@@ -133,14 +135,8 @@ class pageRouteState extends State<pageRoute> {
               color: orderByScore ? Colors.yellowAccent : Colors.white,
             ),
             onPressed: () {
-              setState(() {
-                orderByScore = !orderByScore;
-                _page = 1;
-                _maxPage = _page;
-                _minPage = _page;
-              });
-              items.clear();
-              _onLoadPage();
+              orderByScore = !orderByScore;
+              _onSelectPage(1);
             },
           ),
         ],
@@ -148,6 +144,19 @@ class pageRouteState extends State<pageRoute> {
       body: CustomScrollView(
         controller: _scrollController,
         slivers: _buildSlivers(context),
+      ),
+      endDrawer: Drawer(
+        child: ListView.builder(
+          itemCount: thread.totalPage,
+          itemBuilder: (context, index) {
+            return ListTile(
+              title: Text("第${index+1}頁"),
+              onTap: () {
+                _onSelectPage(index+1);
+              },
+            );
+          },
+        ),
       ),
     );
   }
