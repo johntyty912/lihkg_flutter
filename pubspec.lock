@@ -275,7 +275,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: c191eec5a71e13cc3796d7a03e21404291f9c7b7
+      resolved-ref: "9df753de7b400503a485b237f0b1a6635d4adcd6"
       url: "git://github.com/johntyty912/lihkg_api_dart.git"
     source: git
     version: "0.0.0"

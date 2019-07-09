@@ -60,7 +60,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   TabController _tabController;
 
-  LoginResponse _login;
+  // LoginResponse _login;
   SharedPreferences prefs;
   List<String> loginInfo;
 
@@ -75,10 +75,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   @override
   void initState() {
-    super.initState();
     _client = new LihkgClient();
     _onLoginCache();
     _onCreate();
+    super.initState();
   }
 
   _onLoginCache() async {
@@ -129,13 +129,26 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 .position
                 .maxScrollExtent &&
         !_subCats[_selectedSubCat]._scrollController.position.outOfRange) {
+      _subCats[_selectedSubCat].page++;
+      _onLoadThread();
+    }
+    if (_subCats[_selectedSubCat]._scrollController.offset <=
+            _subCats[_selectedSubCat]
+                ._scrollController
+                .position
+                .minScrollExtent &&
+        !_subCats[_selectedSubCat]._scrollController.position.outOfRange) {
+      _subCats[_selectedSubCat].page = 1;
+      setState((){
+        _subCats[_selectedSubCat].threadList.clear();
+      });
       _onLoadThread();
     }
   }
 
   Future<void> _onLoadThread() async {
     List<Item> _tempList = _subCats[_selectedSubCat].threadList;
-    _subCats[_selectedSubCat].page++;
+    // _subCats[_selectedSubCat].page++;
     var threadList;
     if (_subCats[_selectedSubCat].isSearch) {
       Map<String, String> _searchtabMap = {
@@ -250,8 +263,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               ? <Widget>[]
               : <Widget>[
                   ListTile(
-                    title: _login == null ? Text("登入") : Text(_me.nickname),
-                    onTap: _login == null ? onTapLogin : onTapUserName,
+                    title: _logined ? Text(_me.nickname) : Text("登入"),
+                    onTap: _logined ? onTapUserName : onTapLogin,
                   ),
                   TextFormField(
                     autofocus: false,
@@ -307,7 +320,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   onTapLogout() {
     prefs.clear();
     setState(() {
-      _login = null;
+      _logined = false;
+      _client.logout();
     });
   }
 
@@ -317,6 +331,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         MaterialPageRoute(
             builder: (context) => LoginRoute(client: _client))).then((result) {
       setState(() {
+        _logined = true;
         _client = result[0];
       });
       List<String> tempList = new List<String>();

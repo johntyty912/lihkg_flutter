@@ -36,10 +36,10 @@ class pageRouteState extends State<pageRoute> {
   void initState() {
     _minPage = _page;
     _maxPage = _page;
-    _scrollController = ScrollController();
+    _scrollController = ScrollController(keepScrollOffset: false);
     _scrollController.addListener(_scrollListener);
-    super.initState();
     _onLoadPage();
+    super.initState();
   }
 
   _scrollListener() {
@@ -48,19 +48,29 @@ class pageRouteState extends State<pageRoute> {
         !_scrollController.position.outOfRange) {
       _maxPage++;
       _page = _maxPage;
-      _onLoadPage();
+      if (_page <= thread.totalPage) {
+        _onLoadPage();
+      } else {
+        _page = 1;
+        _minPage = 1;
+      }
     }
     if (_scrollController.offset <=
             _scrollController.position.minScrollExtent &&
         !_scrollController.position.outOfRange) {
       _minPage--;
       _page = _minPage;
-      _onLoadPage();
+      if (_page > 0) {
+        _onLoadPage();
+      } else {
+        _page = thread.totalPage;
+        _minPage = thread.totalPage;
+      }
     }
   }
 
   Future<void> _onLoadPage() async {
-    Map<int, List<ItemData>> _tempMap = items;
+    Map<int, List<ItemData>> _tempMap = Map.from(items);
 
     final page = await _client.getPage(thread.threadID,
         page: _page, orderByScore: orderByScore);
@@ -84,12 +94,12 @@ class pageRouteState extends State<pageRoute> {
   Widget _buildHeader(int index, {String text}) {
     return new Container(
       height: 60.0,
-      color: Color.fromARGB(200, 150, 225, 255),
+      color: Color.fromARGB(200, 255, 255, 255),
       padding: EdgeInsets.symmetric(horizontal: 16.0),
       alignment: Alignment.center,
       child: new Text(
         text ?? '第${index}頁',
-        style: const TextStyle(color: Colors.white),
+        style: const TextStyle(color: Colors.black87),
       ),
     );
   }
@@ -150,9 +160,9 @@ class pageRouteState extends State<pageRoute> {
           itemCount: thread.totalPage,
           itemBuilder: (context, index) {
             return ListTile(
-              title: Text("第${index+1}頁"),
+              title: Text("第${index + 1}頁"),
               onTap: () {
-                _onSelectPage(index+1);
+                _onSelectPage(index + 1);
               },
             );
           },
