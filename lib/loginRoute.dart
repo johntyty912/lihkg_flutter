@@ -117,6 +117,7 @@ class LoginRouteState extends State<LoginRoute> {
           borderRadius: BorderRadius.circular(24),
         ),
         onPressed: () {
+          _result.add(_client);
           Navigator.pop(context, _result);
         },
         padding: EdgeInsets.all(12),
