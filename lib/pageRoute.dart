@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lihkg_api/lihkg_api.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
+import 'package:lihkg_flutter/replyRoute.dart';
 import 'msgCard.dart';
 
 class pageRoute extends StatefulWidget {
@@ -133,12 +134,30 @@ class pageRouteState extends State<pageRoute> {
     _onLoadPage();
   }
 
+  _onPressedReply() { //TODO
+    // print("reply pressed ${thread.threadID}");
+    Navigator.push(context,
+            MaterialPageRoute(builder: (context) => replyRoute(thread: thread, client: _client,)))
+        .then((result) {
+      if (result) {
+        //TODO
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(thread.title),
         actions: <Widget>[
+          IconButton(
+            icon: Icon(
+              Icons.reply,
+              color: Colors.white,
+            ),
+            onPressed: _onPressedReply,
+          ),
           IconButton(
             icon: Icon(
               Icons.flash_on,
