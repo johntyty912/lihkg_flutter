@@ -1,3 +1,4 @@
+import 'package:lihkg_flutter/pushMachineRoute.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lihkg_api/lihkg_api.dart';
 
@@ -60,7 +61,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   TabController _tabController;
 
-  // LoginResponse _login;
   SharedPreferences prefs;
   List<String> loginInfo;
 
@@ -266,6 +266,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     title: _logined ? Text(_me.nickname) : Text("登入"),
                     onTap: _logined ? onTapUserName : onTapLogin,
                   ),
+                  ListTile(
+                    title: Text("推post"),
+                    onTap: onTapPushMachine,
+                  ),
                   TextFormField(
                     autofocus: false,
                     decoration: InputDecoration(
@@ -339,6 +343,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       tempList.add(result[2]);
       prefs.setStringList("loginInfo", tempList);
     });
+  }
+
+  onTapPushMachine() {
+    Navigator.push(context, MaterialPageRoute(builder: (context){
+      return pushMachineRoute();
+    }));
   }
 
   Widget LoadingPage() {

@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'globals.dart' as globals;
+
 import 'package:flutter/material.dart';
 import 'package:lihkg_api/lihkg_api.dart';
 
@@ -39,6 +42,12 @@ class replyRouteState extends State<replyRoute> {
     }
   }
 
+  _onPressedPushMachine() async {
+    globals.pushMachines[thread.title] = globals.PushMachine(
+        threadID: thread.threadID, content: controller.text, client: _client);
+    Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -75,6 +84,10 @@ class replyRouteState extends State<replyRoute> {
               OutlineButton(
                 child: Text("提交"),
                 onPressed: _onPressedSubmit,
+              ),
+              OutlineButton(
+                child: Text("推post機器"),
+                onPressed: _onPressedPushMachine,
               ),
             ],
           ),

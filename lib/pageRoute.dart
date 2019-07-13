@@ -134,15 +134,16 @@ class pageRouteState extends State<pageRoute> {
     _onLoadPage();
   }
 
-  _onPressedReply() { //TODO
+  _onPressedReply() {
+    //TODO
     // print("reply pressed ${thread.threadID}");
-    Navigator.push(context,
-            MaterialPageRoute(builder: (context) => replyRoute(thread: thread, client: _client,)))
-        .then((result) {
-      if (result) {
-        //TODO
-      }
-    });
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => replyRoute(
+                  thread: thread,
+                  client: _client,
+                )));
   }
 
   @override
