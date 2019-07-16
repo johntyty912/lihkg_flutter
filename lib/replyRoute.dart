@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'globals.dart' as globals;
 
 import 'package:flutter/material.dart';
@@ -43,9 +42,20 @@ class replyRouteState extends State<replyRoute> {
   }
 
   _onPressedPushMachine() async {
-    globals.pushMachines[thread.title] = globals.PushMachine(
-        threadID: thread.threadID, content: controller.text, client: _client);
-    Navigator.pop(context);
+    final response = await _client.postReply(thread.threadID, controller.text);
+    if (response.success == 1) {
+      globals.pushMachines[thread.title] = globals.PushMachine(
+          threadID: thread.threadID, content: controller.text, client: _client);
+      Navigator.pop(context);
+    } else {
+      return showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              content: Text("回覆失敗!"),
+            );
+          });
+    }
   }
 
   @override
