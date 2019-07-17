@@ -263,7 +263,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               ? <Widget>[]
               : <Widget>[
                   ListTile(
-                    title: _logined ? Text(_me.nickname) : Text("登入"),
+                    // title: _logined ? Text(_me.nickname) : Text("登入"),
+                    title: Text(_me == null? "登入" : _me.nickname),
                     onTap: _logined ? onTapUserName : onTapLogin,
                   ),
                   ListTile(
