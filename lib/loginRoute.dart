@@ -97,6 +97,7 @@ class LoginRouteState extends State<LoginRoute> {
                     });
               } else if (result.success == 1) {
                 _result.add(_client);
+                _result.add(result.response.me);
                 _result.add(_emailController.text);
                 _result.add(_passwordController.text);
                 Navigator.pop(context, _result);

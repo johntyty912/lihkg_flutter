@@ -327,6 +327,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     setState(() {
       _logined = false;
       _client.logout();
+      _me = null;
     });
   }
 
@@ -338,10 +339,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       setState(() {
         _logined = true;
         _client = result[0];
+        _me = result[1];
       });
       List<String> tempList = new List<String>();
-      tempList.add(result[1]);
       tempList.add(result[2]);
+      tempList.add(result[3]);
       prefs.setStringList("loginInfo", tempList);
     });
   }
