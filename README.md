@@ -3,7 +3,8 @@
 A new Flutter project.
 
 ## APK download
-https://drive.google.com/open?id=1JFIT6LOEd7zy7UXltl2yYhBguUQ1DWwI
+64-bits: https://drive.google.com/open?id=1JFIT6LOEd7zy7UXltl2yYhBguUQ1DWwI
+32-bits: https://drive.google.com/open?id=1do1M-wLz1iJymX8tzA54n2lPOqFJkAzi
 
 ## Getting Started
 
