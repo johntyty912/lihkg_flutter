@@ -1,7 +1,8 @@
 import 'package:lihkg_flutter/pushMachineRoute.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lihkg_api/lihkg_api.dart';
-
+import 'package:flutter/services.dart' show rootBundle;
+import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'pageRoute.dart';
@@ -51,7 +52,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   LihkgClient _client;
   User _me;
-  bool _logined = false;
+  // bool _logined = false;
 
   String _selectedCatID = "1";
   String _selectedSubCat;
@@ -89,21 +90,31 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         "email": loginInfo[0],
         "password": loginInfo[1],
       };
-      BaseResponse<LoginResponse> loginResponse = await _client.postLogin(body);
-      _me = loginResponse.response.me;
-      _logined = true;
+      // BaseResponse<LoginResponse> loginResponse = await _client.postLogin(body);
+      // if (loginResponse.success == 1) {
+      //   _me = loginResponse.response.me;
+      //   _logined = true;
+      // }
     }
   }
 
   Future<void> _onCreate() async {
-    final property = await _client.getProperty();
+    String dummyString =
+        await rootBundle.loadString('assets/json/property.json');
+    Map dummyJson = json.decode(dummyString);
+    final property =  BaseResponse<PropertyResponse>.fromJson(dummyJson);
+    // final property = await _client.getProperty();
     Map<String, DynamicTabContent> _tempMap = new Map();
     for (final category in property.response.categoryList) {
       _category[category.catId] = category;
     }
 
     for (final subCat in _category[_selectedCatID].subCategory) {
-      final threadList = await _client.getCategory(subCat, 1);
+      String dummyString =
+        await rootBundle.loadString('assets/json/category.json');
+      Map dummyJson = json.decode(dummyString);
+      final threadList =  BaseResponse<CategoryResponse>.fromJson(dummyJson);
+      // final threadList = await _client.getCategory(subCat, 1);
       _tempMap[subCat.name] = new DynamicTabContent.fromSubCat(
           subCat.name, subCat, threadList.response.items, subCat.query);
       _tempMap[subCat.name]._scrollController.addListener(_scrollListener);
@@ -139,7 +150,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 .minScrollExtent &&
         !_subCats[_selectedSubCat]._scrollController.position.outOfRange) {
       _subCats[_selectedSubCat].page = 1;
-      setState((){
+      setState(() {
         _subCats[_selectedSubCat].threadList.clear();
       });
       _onLoadThread();
@@ -156,14 +167,22 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         '主題新至舊': 'desc_create_time',
         '回覆新至舊': 'desc_reply_time'
       };
-      threadList = await _client.getSearch(
-          _subCats[_selectedSubCat].searchKeyword,
-          sort: _searchtabMap[_selectedSubCat],
-          page: _subCats[_selectedSubCat].page);
+      // threadList = await _client.getSearch(
+      //     _subCats[_selectedSubCat].searchKeyword,
+      //     sort: _searchtabMap[_selectedSubCat],
+      //     page: _subCats[_selectedSubCat].page);
+      String dummyString =
+        await rootBundle.loadString('assets/json/search.json');
+      Map dummyJson = json.decode(dummyString);
+      threadList =  BaseResponse<SearchResponse>.fromJson(dummyJson);
     } else {
-      threadList = await _client.getCategory(
-          _subCats[_selectedSubCat].subCategory,
-          _subCats[_selectedSubCat].page);
+      // threadList = await _client.getCategory(
+      //     _subCats[_selectedSubCat].subCategory,
+      //     _subCats[_selectedSubCat].page);
+      String dummyString =
+        await rootBundle.loadString('assets/json/category.json');
+      Map dummyJson = json.decode(dummyString);
+      threadList =  BaseResponse<CategoryResponse>.fromJson(dummyJson);
     }
     if (threadList.success == 0) {
       return;
@@ -181,7 +200,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       _subCats.clear();
     });
     for (final subCat in _category[_selectedCatID].subCategory) {
-      final threadList = await _client.getCategory(subCat, 1);
+      // final threadList = await _client.getCategory(subCat, 1);
+      String dummyString =
+        await rootBundle.loadString('assets/json/category.json');
+      Map dummyJson = json.decode(dummyString);
+      final threadList =  BaseResponse<CategoryResponse>.fromJson(dummyJson);
       _subCats[subCat.name] = new DynamicTabContent.fromSubCat(
           subCat.name, subCat, threadList.response.items, subCat.query);
       _subCats[subCat.name]._scrollController.addListener(_scrollListener);
@@ -264,8 +287,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               : <Widget>[
                   ListTile(
                     // title: _logined ? Text(_me.nickname) : Text("登入"),
-                    title: Text(_me == null? "登入" : _me.nickname),
-                    onTap: _logined ? onTapUserName : onTapLogin,
+                    title: Text(_me == null ? "登入" : _me.nickname),
+                    onTap: _client.logined ? onTapUserName : onTapLogin,
                   ),
                   ListTile(
                     title: Text("推post"),
@@ -299,7 +322,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       '回覆新至舊': 'desc_reply_time'
     };
     for (final _tabName in _tabMap.keys) {
-      final response = await _client.getSearch(q, sort: _tabMap[_tabName]);
+      // final response = await _client.getSearch(q, sort: _tabMap[_tabName]);
+      String dummyString =
+        await rootBundle.loadString('assets/json/category.json');
+      Map dummyJson = json.decode(dummyString);
+      final response =  BaseResponse<SearchResponse>.fromJson(dummyJson);
       _tempMap[_tabName] =
           DynamicTabContent.fromSearch(_tabName, response.response.items, q);
       _tempMap[_tabName]._scrollController.addListener(_scrollListener);
@@ -325,7 +352,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   onTapLogout() {
     prefs.clear();
     setState(() {
-      _logined = false;
+      _client.logined = false;
       _client.logout();
       _me = null;
     });
@@ -337,7 +364,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         MaterialPageRoute(
             builder: (context) => LoginRoute(client: _client))).then((result) {
       setState(() {
-        _logined = true;
+        // _logined = true;
         _client = result[0];
         _me = result[1];
       });
@@ -349,7 +376,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   onTapPushMachine() {
-    Navigator.push(context, MaterialPageRoute(builder: (context){
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
       return pushMachineRoute();
     }));
   }

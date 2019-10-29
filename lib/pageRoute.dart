@@ -3,6 +3,8 @@ import 'package:lihkg_api/lihkg_api.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 import 'package:lihkg_flutter/replyRoute.dart';
 import 'msgCard.dart';
+import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
 
 class pageRoute extends StatefulWidget {
   final Item thread;
@@ -20,6 +22,7 @@ class pageRouteState extends State<pageRoute> {
   int _page = 1;
   int _minPage;
   int _maxPage;
+  int _totalPage;
   bool orderByScore = false;
   Map<int, List<ItemData>> items = new Map();
   ScrollController _scrollController;
@@ -37,6 +40,7 @@ class pageRouteState extends State<pageRoute> {
   void initState() {
     _minPage = _page;
     _maxPage = _page;
+    _totalPage = thread.totalPage;
     _scrollController = ScrollController(keepScrollOffset: false);
     _scrollController.addListener(_scrollListener);
     _onLoadPage();
@@ -49,7 +53,7 @@ class pageRouteState extends State<pageRoute> {
         !_scrollController.position.outOfRange) {
       _maxPage++;
       _page = _maxPage;
-      if (_page <= thread.totalPage) {
+      if (_page <= _totalPage) {
         _onLoadPage();
       } else {
         _page = 1;
@@ -64,8 +68,8 @@ class pageRouteState extends State<pageRoute> {
       if (_page > 0) {
         _onLoadPage();
       } else {
-        _page = thread.totalPage;
-        _minPage = thread.totalPage;
+        _page = _totalPage;
+        _minPage = _totalPage;
       }
     }
   }
@@ -73,14 +77,19 @@ class pageRouteState extends State<pageRoute> {
   Future<void> _onLoadPage() async {
     Map<int, List<ItemData>> _tempMap = Map.from(items);
 
-    final page = await _client.getPage(thread.threadID,
-        page: _page, orderByScore: orderByScore);
+    // final page = await _client.getPage(thread.threadID,
+    //     page: _page, orderByScore: orderByScore);
+    String dummyString =
+        await rootBundle.loadString('assets/json/page_1.json');
+    Map dummyJson = json.decode(dummyString);
+    final page =  BaseResponse<PageResponse>.fromJson(dummyJson);
     if (page.response == null) {
       return;
     }
     if (page.response.itemData.isNotEmpty) {
       _tempMap[_page] = page.response.itemData;
       setState(() {
+        _totalPage = page.response.totalPage;
         items = _tempMap;
       });
     }
@@ -177,12 +186,13 @@ class pageRouteState extends State<pageRoute> {
       ),
       endDrawer: Drawer(
         child: ListView.builder(
-          itemCount: thread.totalPage,
+          itemCount: _totalPage,
           itemBuilder: (context, index) {
             return ListTile(
               title: Text("第${index + 1}頁"),
               onTap: () {
                 _onSelectPage(index + 1);
+                Navigator.pop(context);
               },
             );
           },

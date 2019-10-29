@@ -1,0 +1,88 @@
+{
+  "success": 1,
+  "server_time": 1572334221,
+  "response": {
+    "thread": {
+      "thread_id": "1680891",
+      "cat_id": "5",
+      "sub_cat_id": "0",
+      "title": "\u539f\u4f86\u9999\u6e2f\u4eba\u88ab\u892b\u596a\u653f\u6cbb\u6b0a\u5229\uff0c\u53cd\u61c9\u5c31\u4fc2\u7b49\u7f8e\u5e1d\u5236\u88c1\u540c\u7e7c\u7e8c\u542b\u6dda\u9078\u8209",
+      "user_id": "14153",
+      "user_nickname": "\u81ed\u22ef",
+      "user_gender": "F",
+      "no_of_reply": "160",
+      "no_of_uni_user_reply": "117",
+      "like_count": 255,
+      "dislike_count": 75,
+      "reply_like_count": "303",
+      "reply_dislike_count": "80",
+      "max_reply_like_count": "43",
+      "max_reply_dislike_count": "3",
+      "create_time": 1572327539,
+      "last_reply_time": 1572334157,
+      "last_reply_time_order": 1572334157,
+      "status": "1",
+      "is_adu": false,
+      "remark": { "last_reply_count": 1, "no_of_uni_not_push_post": 28 },
+      "last_reply_user_id": "28831",
+      "first_post_id": "10b42724c331a3bbafb4b5e370d5389f759e3dac",
+      "last_post_id": "00eb740450b27fd93bf12c3ec0c0d3091b7bf6ec",
+      "most_like_post_id": "5027ea1cbf5729810672d8d57b772fa862adfd31",
+      "max_reply": "5001",
+      "total_page": 7,
+      "is_hot": true,
+      "category": {
+        "cat_id": "5",
+        "name": "\u6642\u4e8b\u53f0",
+        "postable": true
+      },
+      "display_vote": true,
+      "vote_status": "0",
+      "is_bookmarked": false,
+      "is_replied": false,
+      "user": {
+        "user_id": "14153",
+        "nickname": "\u81ed\u22ef",
+        "level": "10",
+        "gender": "F",
+        "status": "1",
+        "create_time": 1480095144,
+        "level_name": "\u666e\u901a\u6703\u54e1",
+        "is_following": false,
+        "is_blocked": false,
+        "is_disappear": false,
+        "is_newbie": false
+      }
+    },
+    "is_like": true,
+    "me": {
+      "user_id": "7289",
+      "nickname": "CDROM",
+      "email": "",
+      "level": "10",
+      "gender": "M",
+      "status": "1",
+      "plus_expiry_time": 1,
+      "create_time": 1480087659,
+      "last_login_time": 1572328521,
+      "level_name": "\u666e\u901a\u6703\u54e1",
+      "is_disappear": false,
+      "is_newbie": false,
+      "is_plus_user": false,
+      "meta_data": {
+        "custom_cat": ["5", "33", "6", "11", "31"],
+        "keyword_filter": "97d170e1550eee4afc0af065b78cda302a97674c",
+        "login_count": 1011,
+        "last_read_notify_time": 1571850790,
+        "notify_count": 0,
+        "push_setting": {
+          "all": true,
+          "show_preview": true,
+          "new_reply": false,
+          "quote": true,
+          "following_new_thread": true
+        }
+      }
+    }
+  }
+}

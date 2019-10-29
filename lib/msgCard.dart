@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -134,7 +134,10 @@ class MsgCardState extends State<MsgCard> {
 
   _vote({bool like}) async {
     if (_client.logined) {
-      final response = await _client.vote(msg, isLike: like);
+      String dummyString = await rootBundle.loadString('assets/json/like.json');
+      Map dummyJson = json.decode(dummyString);
+      final response = BaseResponse<LikeResponse>.fromJson(dummyJson);
+      // final response = await _client.vote(msg, isLike: like);
       if (response.success == 0) {
         return showDialog(
             context: context,
@@ -176,8 +179,7 @@ class MsgCardState extends State<MsgCard> {
                 Text("#${msg.msgNum} "),
                 Text("${msg.userNickname}",
                     style: TextStyle(
-                        color:
-                            msg.userGender == "M" ? Colors.blue : Colors.red,
+                        color: msg.userGender == "M" ? Colors.blue : Colors.red,
                         fontSize: 20.0)),
               ],
             ),

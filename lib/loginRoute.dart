@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:lihkg_api/lihkg_api.dart';
+import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
 
 class LoginRoute extends StatefulWidget {
   final LihkgClient client;
 
-  LoginRoute({Key key, @required this.client})
-      : super(key: key);
+  LoginRoute({Key key, @required this.client}) : super(key: key);
   @override
   LoginRouteState createState() => LoginRouteState(client);
 }
@@ -13,7 +14,7 @@ class LoginRoute extends StatefulWidget {
 class LoginRouteState extends State<LoginRoute> {
   LihkgClient _client;
   LoginRouteState(this._client);
-  
+
   List<dynamic> _result = new List();
 
   final _emailController = new TextEditingController();
@@ -24,7 +25,16 @@ class LoginRouteState extends State<LoginRoute> {
       "email": _emailController.text,
       "password": _passwordController.text,
     };
-    return await _client.postLogin(body);
+    if (_emailController.text == "johntyty912@gmail.com" && _passwordController.text == "12345678") {
+      String dummyString = await rootBundle.loadString('assets/json/login_success.json');
+      Map dummyJson = json.decode(dummyString);
+      return BaseResponse<LoginResponse>.fromJson(dummyJson);
+    } else {
+      String dummyString = await rootBundle.loadString('assets/json/login_fail.json');
+      Map dummyJson = json.decode(dummyString);
+      return BaseResponse<LoginResponse>.fromJson(dummyJson);
+    }
+    // return await _client.postLogin(body);
   }
 
   @override
@@ -96,6 +106,7 @@ class LoginRouteState extends State<LoginRoute> {
                       );
                     });
               } else if (result.success == 1) {
+                _client.logined = true;
                 _result.add(_client);
                 _result.add(result.response.me);
                 _result.add(_emailController.text);
